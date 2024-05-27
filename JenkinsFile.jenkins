@@ -1,32 +1,36 @@
-stages {
-    stage('Build') {
-        steps {
-            script {
-                // Install .NET SDK
-                sh 'dotnet --version || wget https://dot.net/v1/dotnet-install.sh && bash dotnet-install.sh -c $DOTNET_VERSION'
-                
-                // Restore and build the project
-                sh 'dotnet restore "C:\\Users\\Basil\\source\\repos\\EnhancedSimpleReactionControllerTests\\MyCSharpProject.csproj"'
-                sh 'dotnet build "C:\\Users\\Basil\\source\\repos\\EnhancedSimpleReactionControllerTests\\MyCSharpProject.csproj" -c Release -o build_output'
+pipeline {
+    agent any
+    
+    stages {
+        stage('Build') {
+            steps {
+                script {
+                    // Install .NET SDK
+                    sh 'dotnet --version || wget https://dot.net/v1/dotnet-install.sh && bash dotnet-install.sh -c $DOTNET_VERSION'
+                    
+                    // Restore and build the project
+                    sh 'dotnet restore "C:\\Users\\Basil\\source\\repos\\EnhancedSimpleReactionControllerTests\\MyCSharpProject.csproj"'
+                    sh 'dotnet build "C:\\Users\\Basil\\source\\repos\\EnhancedSimpleReactionControllerTests\\MyCSharpProject.csproj" -c Release -o build_output'
+                }
+            }
+            post {
+                success {
+                    archiveArtifacts artifacts: 'build_output/**/*', allowEmptyArchive: true
+                }
             }
         }
-        post {
-            success {
-                archiveArtifacts artifacts: 'build_output/**/*', allowEmptyArchive: true
-            }
-        }
-    }
 
-    stage('Test') {
-        steps {
-            script {
-                // Run tests
-                sh 'dotnet test "C:\\Users\\Basil\\source\\repos\\EnhancedSimpleReactionControllerTests.Tests\\MyCSharpProject.Tests.csproj" --logger "trx;LogFileName=test_results.trx"'
+        stage('Test') {
+            steps {
+                script {
+                    // Run tests
+                    sh 'dotnet test "C:\\Users\\Basil\\source\\repos\\EnhancedSimpleReactionControllerTests.Tests\\MyCSharpProject.Tests.csproj" --logger "trx;LogFileName=test_results.trx"'
+                }
             }
-        }
-        post {
-            always {
-                junit 'MyCSharpProject.Tests/TestResults/test_results.trx'
+            post {
+                always {
+                    junit 'MyCSharpProject.Tests/TestResults/test_results.trx'
+                }
             }
         }
     }
